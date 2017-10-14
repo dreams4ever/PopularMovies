@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">Trial_Json</string>
+    <string name="app_name">Imovies</string>
+    <string name="pop_asc">poplar asc</string>
+    <string name="pop_dec">poplar dec</string>
+    <string name="vote">vote</string>
+    <string name="comments">Comments : </string>
+    <string name="high_rated">High rated</string>
+    <string name="most_popular">Most popular</string>
+    <string name="low_rated">Low Rated</string>
+
 </resources>

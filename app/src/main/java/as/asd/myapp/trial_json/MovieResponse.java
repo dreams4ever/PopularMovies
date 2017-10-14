@@ -5,11 +5,14 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+import io.realm.RealmList;
+import io.realm.RealmObject;
+
 /**
  * Created by Dreams on 27/09/2017.
  */
 
-public class MovieResponse {
+public class MovieResponse extends RealmObject{
     @SerializedName("page")
     @Expose
     private Integer page;
@@ -21,7 +24,7 @@ public class MovieResponse {
     private Integer totalPages;
     @SerializedName("results")
     @Expose
-    private List<MovieModel> results = null;
+    private RealmList<MovieModel> results = null;
 
     public Integer getPage() {
         return page;
@@ -47,11 +50,11 @@ public class MovieResponse {
         this.totalPages = totalPages;
     }
 
-    public List<MovieModel> getResults() {
+    public RealmList<MovieModel> getResults() {
         return results;
     }
 
-    public void setResults(List<MovieModel> results) {
+    public void setResults(RealmList<MovieModel> results) {
         this.results = results;
     }
 }

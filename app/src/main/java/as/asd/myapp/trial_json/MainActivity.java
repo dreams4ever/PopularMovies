@@ -3,73 +3,127 @@ package as.asd.myapp.trial_json;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.List;
 
+import as.asd.myapp.trial_json.service.ApiService;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.GET;
 
 public class MainActivity extends AppCompatActivity {
-    List<MovieModel> arrayList;
-    DataAdapter adapter;
-    int s;
+    List<MovieModel> mMoviesArray;
+    MovieRecyclerAdapter mMoviesAdapter;
+    MovieRecyclerAdapter mDesMoviesAdapter;
+    MovieRecyclerAdapter mVoteMoviesAdapter;
+    RecyclerView mMovieList;
+    RecyclerView mDesMovieList;
+    RecyclerView mVoteMovieList;
+    Retrofit mRetrofit;
+    ApiService mService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final GridView list = (GridView) findViewById(R.id.grid_films);
-        adapter = new DataAdapter(this);
+        mMovieList = (RecyclerView) findViewById(R.id.rv_popular);
+        mDesMovieList = (RecyclerView) findViewById(R.id.rv_des);
+        mVoteMovieList = (RecyclerView) findViewById(R.id.rv_rated);
+        mMoviesAdapter = new MovieRecyclerAdapter(this);
+        mDesMoviesAdapter = new MovieRecyclerAdapter(this);
+        mVoteMoviesAdapter = new MovieRecyclerAdapter(this);
 
-        Retrofit retrofit = new Retrofit.Builder()
+        mMovieList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        mDesMovieList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        mVoteMovieList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+        mRetrofit = new Retrofit.Builder()
                 .baseUrl("https://api.themoviedb.org/3/discover/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        Service service = retrofit.create(Service.class);
+        mService = mRetrofit.create(ApiService.class);
 
-        final Call<MovieResponse> repos = service.listMovies();
-        repos.enqueue(new Callback<MovieResponse>() {
-            @Override
-            public void onResponse(Call<MovieResponse> call, final Response<MovieResponse> response) {
-                if (response != null) {
-                    Toast.makeText(MainActivity.this, "results:" + response.body().getTotalResults(), Toast.LENGTH_SHORT).show();
+        Call<MovieResponse> ascMoviesCall = mService.lowListMovies();
+        ascMoviesCall.enqueue(new popularCallback());
 
-                    arrayList = response.body().getResults();
-                    adapter.setData(arrayList);
-                    adapter.notifyDataSetChanged();
+        Call<MovieResponse> highMovieCall = mService.voteListMovies();
+        highMovieCall.enqueue(new highVoteCallback());
 
-                    list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            Intent intent=new Intent(MainActivity.this,details.class);
-                            Toast.makeText(MainActivity.this,"position :"+position,Toast.LENGTH_LONG).show();
-                            startActivity(intent);
-                        }
-                    });
-                }
-            }
+        Call<MovieResponse> desMovieCall = mService.mostListMovies();
+        desMovieCall.enqueue(new desCallback());
 
-            @Override
-            public void onFailure(Call<MovieResponse> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
-                t.printStackTrace();
-            }
-        });
-        list.setAdapter(adapter);
-
+        mMovieList.setAdapter(mMoviesAdapter);
+        mDesMovieList.setAdapter(mDesMoviesAdapter);
+        mVoteMovieList.setAdapter(mVoteMoviesAdapter);
     }
-    public interface Service {
-        @GET("movie?api_key=00563628f45262fc9ea62d52baab6e4a")
-        Call<MovieResponse> listMovies();
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public class popularCallback implements Callback<MovieResponse> {
+
+        @Override
+        public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
+            if (response != null) {
+                mVoteMoviesAdapter.setData(response.body().getResults());
+                mVoteMoviesAdapter.notifyDataSetChanged();
+            }
+        }
+
+        @Override
+        public void onFailure(Call<MovieResponse> call, Throwable t) {
+            t.printStackTrace();
+        }
+    }
+    public class highVoteCallback implements Callback<MovieResponse> {
+
+        @Override
+        public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
+            if (response != null) {
+                mMoviesAdapter.setData(response.body().getResults());
+                mMoviesAdapter.notifyDataSetChanged();
+            }
+        }
+
+        @Override
+        public void onFailure(Call<MovieResponse> call, Throwable t) {
+            t.printStackTrace();
+        }
+    }
+    public class desCallback implements Callback<MovieResponse> {
+
+        @Override
+        public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
+            if (response != null) {
+                mDesMoviesAdapter.setData(response.body().getResults());
+                mDesMoviesAdapter.notifyDataSetChanged();
+            }
+        }
+
+        @Override
+        public void onFailure(Call<MovieResponse> call, Throwable t) {
+            t.printStackTrace();
+        }
     }
 }
